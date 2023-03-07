@@ -24,10 +24,10 @@ unsafe impl GlobalAlloc for Heapalloc {
         HeapAlloc(
         GetProcessHeap(),
          HEAP_ZERO_MEMORY,
-        layout.size()) as *mut u8
+        layout.size() ) as *mut u8
     }
 
-    unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, new_size: usize) -> *mut u8 {
+    unsafe fn realloc(&self, ptr: *mut u8, _layout: Layout, new_size: usize) -> *mut u8 {
         HeapReAlloc(
             GetProcessHeap(),
             HEAP_ZERO_MEMORY,
