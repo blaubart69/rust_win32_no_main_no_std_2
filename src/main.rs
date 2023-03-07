@@ -48,16 +48,18 @@ pub extern fn eh_personality() {}
 #[no_mangle] // don't mangle the name of this function
 pub extern fn mainCRTStartup() {
 
-    unsafe {
-        let mut argc : i32 = 0;
-        let argv= CommandLineToArgvW(GetCommandLineW(), &mut argc);
+    let (argc,argv) = unsafe {
+        let mut argc: i32 = 0;
+        let argv = CommandLineToArgvW(GetCommandLineW(), &mut argc);
 
-
+        (argc, argv)
         //let arg0 = alloc::string::String::from_utf16(*argv[0]).unwrap();
         //bumsti::write_stdout(arg0.as_str());
+    };
 
-        let beeMainExitCode = beeMain(argc, argv);
+    let beeMainExitCode = beeMain(argc, argv);
 
+    unsafe {
         LocalFree(argv as isize);
         ExitProcess(beeMainExitCode);
     }
