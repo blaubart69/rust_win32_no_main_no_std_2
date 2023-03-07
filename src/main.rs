@@ -38,11 +38,11 @@ use windows_sys::Win32::System::Threading::ExitProcess;
 use windows_sys::Win32::UI::Shell::CommandLineToArgvW;
 
 use crate::win32alloc::Heapalloc;
-use crate::winstr::WinStr;
+use crate::wstr::WStr;
 
 mod win32;
 mod beemain;
-mod winstr;
+mod wstr;
 
 #[no_mangle] // don't mangle the name of this function
 pub extern fn mainCRTStartup() {
@@ -54,7 +54,7 @@ pub extern fn mainCRTStartup() {
         let args = (0..argc)
             .map( |idx| {
                 let arg_ptr = *argv.offset(idx as isize);
-                WinStr::from_pwstr(arg_ptr)
+                WStr::from_pwstr(arg_ptr)
             }).collect();
 
         args

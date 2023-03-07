@@ -1,22 +1,26 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
+use windows_sys::w;
 use windows_sys::Win32::Foundation::WIN32_ERROR;
-use crate::win32::{writeln_console};
-use crate::winstr::WinStr;
+use crate::win32::{writeln_console,GetFinalPath};
+use crate::wstr::WStr;
 
-pub fn my_main(args : Vec<WinStr>) -> Result<(),WIN32_ERROR> {
+pub fn my_main(args : Vec<WStr>) -> Result<(),WIN32_ERROR> {
     //let first = argv as &[u16];
+
 
     for (idx, arg) in args.iter().enumerate() {
         writeln_console(arg)?;
     }
 
-    let mut first_veccal : Vec<u16> = Vec::new();
+    let u = unsafe { WStr::from_pwstr(w!("berni")) };
+    writeln_console(&u )?;
 
-    first_veccal.push(128);
+    if args.len() == 1 {
+        let finalPath = GetFinalPath(&args[0])?;
+        writeln_console(&WStr(&finalPath))?;
+    }
 
-    let boxxi = Box::new(5);
-    let rc = t1(&first_veccal, &boxxi);
     Ok(())
 }
 

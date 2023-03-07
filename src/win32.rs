@@ -1,11 +1,13 @@
+use alloc::vec::Vec;
 use core::ffi::c_void;
 use core::str;
 use core::ptr::{null_mut};
 
-use windows_sys::Win32::Foundation::{BOOL, GetLastError, WIN32_ERROR};
-use windows_sys::Win32::Storage::FileSystem::WriteFile;
+use windows_sys::Win32::Foundation::{BOOL, CloseHandle, GetLastError, HANDLE, INVALID_HANDLE_VALUE, WIN32_ERROR};
+use windows_sys::Win32::Storage::FileSystem::{CreateFileW, FILE_ACCESS_FLAGS, FILE_FLAG_BACKUP_SEMANTICS, FILE_SHARE_READ, FILE_SHARE_WRITE, GetFinalPathNameByHandleW, OPEN_EXISTING, WriteFile};
 use windows_sys::Win32::System::Console::{GetStdHandle, STD_OUTPUT_HANDLE, WriteConsoleW};
-use crate::winstr::WinStr;
+use windows_sys::Win32::System::WindowsProgramming::VOLUME_NAME_DOS;
+use crate::wstr::WStr;
 
 pub fn write_stdout(text: &str) -> BOOL {
 
@@ -22,7 +24,7 @@ pub fn write_stdout(text: &str) -> BOOL {
     }
 }
 
-pub fn write_console(text : &WinStr) -> Result<(),WIN32_ERROR> {
+pub fn write_console(text : &WStr) -> Result<(),WIN32_ERROR> {
     unsafe {
         let mut written : u32 = 0;
         match
@@ -38,12 +40,56 @@ pub fn write_console(text : &WinStr) -> Result<(),WIN32_ERROR> {
     }
 }
 
-const WIN_CRLF: WinStr = WinStr( &[ 13, 10, 0 ] );
+const WIN_CRLF: WStr = WStr( &[ 13, 10 ] );
 
-pub fn writeln_console(text : &WinStr) -> Result<(),WIN32_ERROR> {
+pub fn writeln_console(text : &WStr) -> Result<(),WIN32_ERROR> {
     write_console(text)?;
     write_console(&WIN_CRLF)?;
     Ok(())
+}
+
+struct SafeHandle(HANDLE);
+
+impl Drop for SafeHandle {
+    fn drop(&mut self) {
+        if self.0 != INVALID_HANDLE_VALUE {
+            unsafe { CloseHandle(self.0); }
+        }
+    }
+}
+
+pub fn GetFinalPath(path : &WStr) -> Result<Vec<u16>,WIN32_ERROR> {
+    unsafe {
+        let handle = SafeHandle(
+            CreateFileW(
+                path.as_ptr(),
+                0,
+                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                null_mut(),
+                OPEN_EXISTING,
+                FILE_FLAG_BACKUP_SEMANTICS,
+                0));
+
+        if handle.0 == INVALID_HANDLE_VALUE {
+            return Err(GetLastError());
+        }
+
+        let lenNeededWithZero = GetFinalPathNameByHandleW(handle.0, null_mut(), 0, VOLUME_NAME_DOS);
+        if lenNeededWithZero == 0 {
+            return Err(GetLastError());
+        }
+
+        let mut buf: Vec<u16> = Vec::with_capacity(lenNeededWithZero as usize);
+
+        let pathlen = GetFinalPathNameByHandleW(handle.0, buf.as_mut_ptr(), buf.capacity() as u32, VOLUME_NAME_DOS);
+        if lenNeededWithZero == 0 {
+            return Err(GetLastError());
+        }
+
+        buf.set_len(pathlen as usize);
+
+        Ok(buf)
+    }
 }
 
 
