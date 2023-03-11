@@ -4,5 +4,20 @@ build-std = ["core", "alloc", "panic_abort","compiler_builtins"]
 build-std-features = ["compiler-builtins-mem","panic_immediate_abort"]
 
 [build]
-target = "x86_64-pc-windows-msvc"
-rustflags = ["-Clink-args=/MAP"]
+#target = "x86_64-pc-windows-msvc"
+target = "i686-pc-windows-msvc"
+#rustflags = ["-Clink-args=/MAP","-Clink-args=msvcrt.lib"]
+#rustflags = ["-Clink-args=/NODEFAULTLIB /MAP","-Clink-args=msvcrt.lib"]
+
+[target.i686-pc-windows-msvc]
+#rustflags = ["-Clink-args=/NODEFAULTLIB /MAP","-Clink-args=msvcrt.lib"]
+rustflags = ["-Clink-args=/NODEFAULTLIB /MAP"]
+#rustflags = ["-Clink-args=/MAP"]
+
+# DEBUG with msvcrt.lib
+#[target.i686-pc-windows-msvc]
+#[profile.debug]
+#rustflags = ["-Clink-args=/NODEFAULTLIB /MAP","-Clink-args=msvcrt.lib"]
+#rustflags = ["-Clink-args=/NODEFAULTLIB /MAP"]
+#rustflags = ["-Clink-args=/NODEFAULTLIB /MAP","-Clink-args=msvcrt.lib"]
+

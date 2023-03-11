@@ -1,0 +1,1 @@
+cargo +nightly rustc --release -- --emit asm -C "llvm-args=-x86-asm-syntax=intel"

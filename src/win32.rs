@@ -58,7 +58,8 @@ impl Drop for SafeHandle {
     }
 }
 
-pub fn GetFinalPath(path : &WStr) -> Result<Vec<u16>,WIN32_ERROR> {
+#[inline(never)]
+pub fn get_final_path(path : &WStr) -> Result<Vec<u16>,WIN32_ERROR> {
     unsafe {
         let handle = SafeHandle(
             CreateFileW(
@@ -74,19 +75,16 @@ pub fn GetFinalPath(path : &WStr) -> Result<Vec<u16>,WIN32_ERROR> {
             return Err(GetLastError());
         }
 
-        let lenNeededWithZero = GetFinalPathNameByHandleW(handle.0, null_mut(), 0, VOLUME_NAME_DOS);
-        if lenNeededWithZero == 0 {
-            return Err(GetLastError());
+        let mut buf : Vec<u16> =
+            match GetFinalPathNameByHandleW(handle.0, null_mut(), 0, VOLUME_NAME_DOS) {
+                0 => return Err(GetLastError()),
+                size_needed_with_zero=> Vec::with_capacity(size_needed_with_zero as usize)
+            };
+
+        match GetFinalPathNameByHandleW(handle.0, buf.as_mut_ptr(), buf.capacity() as u32, VOLUME_NAME_DOS) {
+            0 => return Err(GetLastError()),
+            path_len => buf.set_len(path_len as usize)
         }
-
-        let mut buf: Vec<u16> = Vec::with_capacity(lenNeededWithZero as usize);
-
-        let pathlen = GetFinalPathNameByHandleW(handle.0, buf.as_mut_ptr(), buf.capacity() as u32, VOLUME_NAME_DOS);
-        if lenNeededWithZero == 0 {
-            return Err(GetLastError());
-        }
-
-        buf.set_len(pathlen as usize);
 
         Ok(buf)
     }

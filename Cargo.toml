@@ -15,11 +15,6 @@ opt-level = "z"
 lto = true
 codegen-units = 1
 
-[dependencies]
-
-#[dependencies.compiler_builtins]
-#features = ["mem"]
-
 [dependencies.windows-sys]
 version = "0.45.0"
 features = [

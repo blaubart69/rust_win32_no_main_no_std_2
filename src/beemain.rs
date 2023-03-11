@@ -2,7 +2,7 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use windows_sys::w;
 use windows_sys::Win32::Foundation::WIN32_ERROR;
-use crate::win32::{writeln_console,GetFinalPath};
+use crate::win32::{writeln_console, get_final_path};
 use crate::wstr::WStr;
 
 pub fn my_main(args : Vec<WStr>) -> Result<(),WIN32_ERROR> {
@@ -17,7 +17,7 @@ pub fn my_main(args : Vec<WStr>) -> Result<(),WIN32_ERROR> {
     writeln_console(&u )?;
 
     if args.len() == 1 {
-        let finalPath = GetFinalPath(&args[0])?;
+        let finalPath = get_final_path(&args[0])?;
         writeln_console(&WStr(&finalPath))?;
     }
 
